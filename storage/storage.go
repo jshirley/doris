@@ -31,7 +31,7 @@ func (store *Storage) GetLink(name string) (*url.URL, error) {
 	return url.Parse(link.URL)
 }
 
-func (storage *Storage) StoreLink(name string, incomingUrl string) error {
+func (store *Storage) StoreLink(name string, incomingUrl string) error {
 	parsedUrl, err := url.Parse(incomingUrl)
 	if err != nil {
 		return err
