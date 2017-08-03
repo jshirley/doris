@@ -1,0 +1,20 @@
+language: go
+sudo: required
+dist: xenial
+env:
+  - GOTAGS=
+  - GOTAGS=libsqlite3
+  - GOTAGS=trace
+  - GOTAGS=vtable
+go:
+  - 1.7
+  - 1.8
+  - tip
+before_install:
+  - go get github.com/mattn/goveralls
+  - go get golang.org/x/tools/cmd/cover
+  - 
+script:
+  - go test ./..
+  - $HOME/gopath/bin/goveralls
+  - go test -race -v . -tags "$GOTAGS"
