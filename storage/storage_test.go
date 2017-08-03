@@ -49,4 +49,14 @@ func TestGetLink(t *testing.T) {
 	if url.String() != testUrl {
 		t.Errorf("Expected %v, got %v", testUrl, url)
 	}
+
+	testUrl2 := "http://google.com/updated"
+	err = store.StoreLink("foo", testUrl2)
+	if err != nil {
+		t.Errorf("Expected to store legitimate URL: %+v", err)
+	}
+	url, _ = store.GetLink("foo")
+	if url.String() != testUrl2 {
+		t.Errorf("Expected store to update to %v, got %v", testUrl2, url)
+	}
 }

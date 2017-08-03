@@ -44,6 +44,7 @@ func (store *Storage) StoreLink(name string, incomingUrl string) error {
 	link, exists := store.linkMap[name]
 	if exists {
 		link.URL = parsedUrl.String()
+		store.linkMap[name] = link
 	} else {
 		store.linkMap[name] = Link{Name: name, URL: parsedUrl.String()}
 	}

@@ -3,9 +3,7 @@ sudo: required
 dist: xenial
 env:
   - GOTAGS=
-  - GOTAGS=libsqlite3
   - GOTAGS=trace
-  - GOTAGS=vtable
 go:
   - 1.7
   - 1.8
@@ -15,6 +13,5 @@ before_install:
   - go get golang.org/x/tools/cmd/cover
   - 
 script:
-  - go test ./..
-  - $HOME/gopath/bin/goveralls
+  - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
   - go test -race -v . -tags "$GOTAGS"
