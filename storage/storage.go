@@ -1,34 +1,67 @@
 package storage
 
 import (
-	//"encoding/json"
+	"encoding/json"
 	"errors"
+	"log"
 	"net/url"
+	"time"
+
+	"github.com/boltdb/bolt"
 )
 
 type Storage struct {
 	File    string
+	Bucket  string
+	db      *bolt.DB
 	linkMap map[string]Link
 }
 
 type Link struct {
-	Version     string
-	Name        string
-	Description string
-	URL         string
+	Version     string `json:"version",omitempty`
+	Name        string `json:"name"`
+	Description string `json:"description",omitempty`
+	Url         string `json:"url"`
 }
 
 func NewStorage(file string) *Storage {
-	return &Storage{file, make(map[string]Link)}
+	db, err := bolt.Open(file, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Setup the default bucket.
+	err = db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte("Links"))
+		return err
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return &Storage{file, "Links", db, make(map[string]Link)}
+}
+
+func (store *Storage) Close() {
+	defer store.db.Close()
 }
 
 func (store *Storage) GetLink(name string) (*url.URL, error) {
-	link, exists := store.linkMap[name]
-	if exists == false {
-		return nil, errors.New("invalid_link_specified")
-	}
+	var link Link
 
-	return url.Parse(link.URL)
+	err := store.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(store.Bucket))
+		v := b.Get([]byte(name))
+		if err := json.Unmarshal(v, &link); err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return url.Parse(link.Url)
 }
 
 func (store *Storage) StoreLink(name string, incomingUrl string) error {
@@ -41,12 +74,15 @@ func (store *Storage) StoreLink(name string, incomingUrl string) error {
 		return errors.New("invalid_absolute_url")
 	}
 
-	link, exists := store.linkMap[name]
-	if exists {
-		link.URL = parsedUrl.String()
-		store.linkMap[name] = link
-	} else {
-		store.linkMap[name] = Link{Name: name, URL: parsedUrl.String()}
-	}
-	return nil
+	return store.db.Update(func(tx *bolt.Tx) error {
+		link := Link{Name: name, Url: incomingUrl}
+		bkt := tx.Bucket([]byte(store.Bucket))
+
+		if buf, err := json.Marshal(link); err != nil {
+			return err
+		} else if err := bkt.Put([]byte(name), buf); err != nil {
+			return err
+		}
+		return nil
+	})
 }
