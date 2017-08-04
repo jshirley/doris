@@ -46,6 +46,30 @@ func (store *Storage) Close() {
 	defer store.db.Close()
 }
 
+func (store *Storage) ListAll() ([]Link, error) {
+	links := []Link{}
+	var link Link
+
+	err := store.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(store.Bucket))
+		c := b.Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			if err := json.Unmarshal(v, &link); err != nil {
+				return err
+			}
+			links = append(links, link)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return []Link{}, err
+	}
+	return links, err
+}
+
 func (store *Storage) GetLink(name string) (*url.URL, error) {
 	var link Link
 
