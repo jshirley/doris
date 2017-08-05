@@ -70,7 +70,7 @@ func (store *Storage) ListAll() ([]Link, error) {
 	return links, err
 }
 
-func (store *Storage) GetLink(name string) (*url.URL, error) {
+func (store *Storage) GetLink(name string) (*Link, error) {
 	var link Link
 
 	err := store.db.View(func(tx *bolt.Tx) error {
@@ -85,7 +85,8 @@ func (store *Storage) GetLink(name string) (*url.URL, error) {
 	if err != nil {
 		return nil, err
 	}
-	return url.Parse(link.Url)
+
+	return &link, nil
 }
 
 func (store *Storage) StoreLink(name string, incomingUrl string) error {

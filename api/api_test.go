@@ -33,12 +33,12 @@ var apiTests = []struct {
 	body   io.Reader
 	out    string
 }{
-	{"/api/links", "GET", nil, linksResult("ok", []storage.Link{}, 0, 1)},
-	{"/api/links", "POST", makeLink("test", "https://www.google.com"), linksResult("created a link", []storage.Link{{Name: "test", Url: "https://www.google.com"}}, 1, 1)},
+	{"/api/links", "GET", nil, linksResult(true, "ok", []storage.Link{}, 0, 1)},
+	{"/api/links", "POST", makeLink("test", "https://www.google.com"), linksResult(true, "created a link", []storage.Link{{Name: "test", Url: "https://www.google.com"}}, 1, 1)},
 }
 
-func linksResult(message string, links []storage.Link, count int, page int) string {
-	res, err := json.Marshal(LinkResult{Message: message, Links: links, Count: count, Page: page})
+func linksResult(ok bool, message string, links []storage.Link, count int, page int) string {
+	res, err := json.Marshal(LinkResult{Ok: ok, Message: message, Links: links, Count: count, Page: page})
 	if err != nil {
 		log.Fatalf("Unable to marshal link response: %+v", err)
 		return ""
@@ -59,8 +59,10 @@ func TestLinkRequests(t *testing.T) {
 	apiObj := New(store)
 
 	for _, tt := range apiTests {
-		req, _ := http.NewRequest(tt.method, tt.path, tt.body)
 		res := httptest.NewRecorder()
+
+		req, _ := http.NewRequest(tt.method, tt.path, tt.body)
+		req.Header.Set("Content-Type", "application/json")
 
 		apiObj.Router.ServeHTTP(res, req)
 		if res.Body.String() != tt.out {

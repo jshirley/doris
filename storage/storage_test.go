@@ -53,8 +53,8 @@ func TestStorage(t *testing.T) {
 		t.Errorf("Expected a URL, got: %+v", err)
 	}
 
-	if link.String() != testUrl {
-		t.Errorf("Expected %v, got %v", testUrl, link)
+	if link.Url != testUrl {
+		t.Errorf("Expected %v, got %v", testUrl, link.Url)
 	}
 
 	testUrl2 := "http://google.com/updated"
@@ -63,7 +63,7 @@ func TestStorage(t *testing.T) {
 		t.Errorf("Expected to store legitimate URL: %+v", err)
 	}
 	link, _ = store.GetLink("foo")
-	if link.String() != testUrl2 {
-		t.Errorf("Expected store to update to %v, got %v", testUrl2, link)
+	if link.Url != testUrl2 {
+		t.Errorf("Expected store to update to %v, got %v", testUrl2, link.Url)
 	}
 }
