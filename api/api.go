@@ -25,13 +25,21 @@ func New(store *storage.Storage) *API {
 	return api
 }
 
+type LinkResult struct {
+	Message string         `json:"message"`
+	Links   []storage.Link `json:"links", omitempty`
+	Link    storage.Link   `json:"link", omitempty`
+	Count   int            `json:"count", omitempty`
+	Page    int            `json:"page", omitempty`
+}
+
 func (api *API) LinksHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Fetching from API storage all the links")
 	links, err := api.Store.ListAll()
 	if err != nil {
 		respondWithError(w, http.StatusOK, err.Error())
 	} else {
-		respondWithJSON(w, http.StatusOK, links)
+		respondWithJSON(w, http.StatusOK, LinkResult{Message: "ok", Links: links, Count: len(links), Page: 1})
 	}
 }
 

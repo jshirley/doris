@@ -11,17 +11,17 @@ import (
 )
 
 type Storage struct {
-	File    string
-	Bucket  string
-	db      *bolt.DB
-	linkMap map[string]Link
+	File   string
+	Bucket string
+	db     *bolt.DB
 }
 
 type Link struct {
-	Version     string `json:"version",omitempty`
-	Name        string `json:"name"`
-	Description string `json:"description",omitempty`
-	Url         string `json:"url"`
+	Version     string   `json:"version",omitempty`
+	Name        string   `json:"name"`
+	Description string   `json:"description",omitempty`
+	Url         string   `json:"url"`
+	Tags        []string `json:"tags"`
 }
 
 func NewStorage(file string) *Storage {
@@ -39,7 +39,7 @@ func NewStorage(file string) *Storage {
 		log.Fatal(err)
 	}
 
-	return &Storage{file, "Links", db, make(map[string]Link)}
+	return &Storage{file, "Links", db}
 }
 
 func (store *Storage) Close() {
