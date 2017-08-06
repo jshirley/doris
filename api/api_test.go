@@ -11,6 +11,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/jshirley/doris/storage"
 )
 
@@ -56,7 +57,7 @@ func TestLinkRequests(t *testing.T) {
 	store := setup()
 	defer teardown(store)
 
-	apiObj := New(store)
+	apiObj := New(mux.NewRouter(), store)
 
 	for _, tt := range apiTests {
 		res := httptest.NewRecorder()

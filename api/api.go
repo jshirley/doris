@@ -13,8 +13,7 @@ type API struct {
 	Store  *storage.Storage
 }
 
-func New(store *storage.Storage) *API {
-	router := mux.NewRouter()
+func New(router *mux.Router, store *storage.Storage) *API {
 	s := router.PathPrefix("/api").Subrouter()
 
 	api := &API{router, store}
