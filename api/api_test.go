@@ -35,6 +35,7 @@ var apiTests = []struct {
 	out    string
 }{
 	{"/api/links", "GET", nil, linksResult(true, "ok", []storage.Link{}, 0, 1)},
+	{"/api/links", "POST", makeLink("test", "bogus link"), linksResult(false, "invalid_absolute_url", nil, 0, 0)},
 	{"/api/links", "POST", makeLink("test", "https://www.google.com"), linksResult(true, "created a link", []storage.Link{{Name: "test", Url: "https://www.google.com"}}, 1, 1)},
 }
 
