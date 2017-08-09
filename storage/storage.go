@@ -11,17 +11,17 @@ import (
 )
 
 type Storage struct {
-	File    string
-	Bucket  string
-	db      *bolt.DB
-	linkMap map[string]Link
+	File   string
+	Bucket string
+	db     *bolt.DB
 }
 
 type Link struct {
-	Version     string `json:"version",omitempty`
-	Name        string `json:"name"`
-	Description string `json:"description",omitempty`
-	Url         string `json:"url"`
+	Version     string   `json:"version",omitempty`
+	Name        string   `json:"name"`
+	Description string   `json:"description",omitempty`
+	Url         string   `json:"url"`
+	Tags        []string `json:"tags"`
 }
 
 func NewStorage(file string) *Storage {
@@ -39,14 +39,38 @@ func NewStorage(file string) *Storage {
 		log.Fatal(err)
 	}
 
-	return &Storage{file, "Links", db, make(map[string]Link)}
+	return &Storage{file, "Links", db}
 }
 
 func (store *Storage) Close() {
 	defer store.db.Close()
 }
 
-func (store *Storage) GetLink(name string) (*url.URL, error) {
+func (store *Storage) ListAll() ([]Link, error) {
+	links := []Link{}
+	var link Link
+
+	err := store.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(store.Bucket))
+		c := b.Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			if err := json.Unmarshal(v, &link); err != nil {
+				return err
+			}
+			links = append(links, link)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return []Link{}, err
+	}
+	return links, err
+}
+
+func (store *Storage) GetLink(name string) (*Link, error) {
 	var link Link
 
 	err := store.db.View(func(tx *bolt.Tx) error {
@@ -61,7 +85,8 @@ func (store *Storage) GetLink(name string) (*url.URL, error) {
 	if err != nil {
 		return nil, err
 	}
-	return url.Parse(link.Url)
+
+	return &link, nil
 }
 
 func (store *Storage) StoreLink(name string, incomingUrl string) error {
